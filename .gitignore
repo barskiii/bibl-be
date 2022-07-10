@@ -40,3 +40,6 @@ lerna-debug.log*
 .env.development
 .env.test
 .env.production
+
+#Image uploads
+/uploads

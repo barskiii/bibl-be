@@ -12,6 +12,9 @@ class SignupUserDto {
     username: string
 
     @IsNotEmpty()
+    password: string
+
+    @IsNotEmpty()
     @IsEmail()
     @MaxLength(255)
     email: string

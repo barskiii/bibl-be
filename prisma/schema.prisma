@@ -1,0 +1,198 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  username String  @unique
+  email    String
+  password String
+  jmbg     String  @unique
+  active   Boolean @default(false)
+  photo    String?
+
+  role String @default("user")
+
+  subscriptions SubscriptionTransaction[]
+  reservations  Reservation[]
+  rents         Rent[]
+}
+
+model Subscription {
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  title  String  @unique
+  price  Int
+  active Boolean @default(false)
+
+  transactions SubscriptionTransaction[]
+}
+
+model SubscriptionTransaction {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  user           User         @relation(fields: [userId], references: [id])
+  userId         String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id])
+  subscriptionId String
+  createdAt      DateTime     @default(now())
+}
+
+model Book {
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  title         String @unique
+  numberOfPages Int
+
+  author   Author @relation(fields: [authorId], references: [id])
+  authorId String
+
+  format   Format @relation(fields: [formatId], references: [id])
+  formatId String
+
+  publisher   Publisher @relation(fields: [publisherId], references: [id])
+  publisherId String
+
+  language   Language @relation(fields: [languageId], references: [id])
+  languageId String
+
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId String
+
+  letter   Letter @relation(fields: [letterId], references: [id])
+  letterId String
+
+  cover   Cover  @relation(fields: [coverId], references: [id])
+  coverId String
+
+  genre   Genre  @relation(fields: [genreId], references: [id])
+  genreId String
+
+  yearOfRelease Int
+  ISBN          String @unique
+  amount        Int    @default(0)
+  description   String
+
+  gallery Gallery[]
+
+  reservations Reservation[]
+  rents        Rent[]
+}
+
+model Author {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  name      String  @unique
+  biography String?
+
+  books Book[]
+}
+
+model Format {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  title String @unique
+
+  books Book[]
+}
+
+model Publisher {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  title String @unique
+
+  books Book[]
+}
+
+model Language {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  title String
+
+  books Book[]
+}
+
+model Category {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  title       String @unique
+  icon        String
+  description String
+
+  books Book[]
+}
+
+model Letter {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  title String @unique
+
+  books Book[]
+}
+
+model Cover {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  title String @unique
+
+  books Book[]
+}
+
+model Genre {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  title String @unique
+
+  books Book[]
+}
+
+model Gallery {
+  id   String  @id @default(auto()) @map("_id") @db.ObjectId
+  main Boolean
+
+  book   Book   @relation(fields: [bookId], references: [id])
+  bookId String
+}
+
+model Reservation {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  book   Book   @relation(fields: [bookId], references: [id])
+  bookId String
+
+  createdAt DateTime  @default(now())
+  status    String    @default("pending")
+  expiresAt DateTime?
+}
+
+model Rent {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+
+  book   Book   @relation(fields: [bookId], references: [id])
+  bookId String
+
+  createdAt DateTime  @default(now())
+  status    String    @default("pending")
+  expiresAt DateTime?
+
+  return Return?
+}
+
+model Return {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  rent   Rent   @relation(fields: [rentId], references: [id])
+  rentId String @unique
+
+  createdAt DateTime @default(now())
+}
+
+model Global {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  title String @unique
+  value Int
+}

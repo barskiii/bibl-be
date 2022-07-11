@@ -1,4 +1,5 @@
 import { PipeTransform, Injectable, ArgumentMetadata, BadRequestException, NotFoundException } from '@nestjs/common';
+import moment from 'moment';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -18,6 +19,8 @@ export class ActivationTokenPipe implements PipeTransform {
                 throw new NotFoundException();
             } else if (tokenRecord.used) {
                 throw new BadRequestException('Token already used');
+            } else if (moment().isAfter(tokenRecord.expiresAt)) {
+                throw new BadRequestException('Token expired');
             }
 
             return tokenRecord

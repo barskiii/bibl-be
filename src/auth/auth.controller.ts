@@ -1,11 +1,15 @@
-import { Body, Controller, Get, Param, ParseFilePipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseFilePipe, Post, Put, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Token } from '@prisma/client';
+import { Token, User } from '@prisma/client';
 import { diskStorage } from 'multer';
 import { ProfilePicValidationPipe } from 'src/shared/pipes/profilePicture.validator';
 import { diskStorageParams } from 'src/shared/utils/diskStorage';
 import { AuthService } from './auth.service';
+import { ResetPasswordDto } from './dto/resetPassword';
 import { SignupUserDto } from './dto/signupUser';
+import { PasswordResetPipe } from './pipes/passwordReset.pipe';
+import { PasswordResetRequestPipe, } from './pipes/passwordResetRequest.pipe';
+import { PasswordTokenCheckPipe } from './pipes/passwordTokenCheck.pipe';
 import { ActivationTokenPipe } from './pipes/userActivationToken.pipe';
 import { UserUniquePipe } from './pipes/userUnique.pipe';
 
@@ -36,8 +40,21 @@ export class AuthController {
 
   //Request password reset link to user's email
   @Post('request-password-reset')
-  async requestPasswordReset(@Body('email') email: string) {
-    const user = await this.authService.requestPasswordReset(email);
+  async requestPasswordReset(@Body('email', PasswordResetRequestPipe) user: User) {
+    await this.authService.requestPasswordReset(user);
     return {message: 'You have successfully requested password reset link! Check your email.'};
+  }
+
+  // Check password reset token
+  @Get('check-password-reset-token/:token')
+  async checkPasswordResetToken(@Param('token', PasswordTokenCheckPipe) token: string) {
+    return {message: 'Token is valid!'};
+  }
+
+  //Reset user's password
+  @Put('reset-password')
+  async resetPassword(@Body(PasswordResetPipe) dto: ResetPasswordDto) {
+    await this.authService.resetPassword(dto);
+    return {message: 'You have successfully reseted your password!'};
   }
 }

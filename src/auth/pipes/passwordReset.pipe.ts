@@ -1,25 +1,26 @@
 import { PipeTransform, Injectable, ArgumentMetadata, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ResetPasswordDto } from '../dto/resetPassword';
 
 @Injectable()
-export class PasswordResetRequestPipe implements PipeTransform {
+export class PasswordResetPipe implements PipeTransform {
     constructor(private prisma: PrismaService) {}
   
-    async transform(email: string, metadata: ArgumentMetadata) {
+    async transform(value: ResetPasswordDto, metadata: ArgumentMetadata) {
         try {
-            const user = await this.prisma.user.findFirst({
+            const token_instance = await this.prisma.token.findFirst({
                 where: {
-                    email: email,
+                    token: value.token,
                 },
             });
 
-            if (!user) {
+            if (!token_instance) {
                 throw new NotFoundException();
-            } else if (!user.active) {
-                throw new BadRequestException('Activate your account first.');
+            } else if (token_instance.used) {
+                throw new BadRequestException('Token not valid.');
             }
 
-            return user
+            return value
         } catch (error) {
             throw new BadRequestException(error.message);
         }

@@ -86,12 +86,12 @@ export class AuthService {
     }
 
     // Request password reset link to user's email
-    async requestPasswordReset(email: string): Promise<void> {
+    async requestPasswordReset(user: User): Promise<void> {
         const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
         
-        const activationToken = this.prisma.token.create({
+        const activationToken = await this.prisma.token.create({
             data: {
-                userId: email,
+                userId: user.id,
                 token: token,
                 type: 'passwordReset',
                 expiresAt: moment().add(1, 'M').toDate(),
@@ -112,9 +112,40 @@ export class AuthService {
         // send mail with defined transport object
         const info = await transporter.sendMail({
             from: '"Bibl Library 📚" <andrija.joksimovic@yahoo.com>', // sender address
-            to: `${email}`, // list of receivers
-            subject: "Account activation token", // Subject line
+            to: `${user.email}`, // list of receivers
+            subject: "Password reset", // Subject line
             text: `Here's your password reset token: ${token}`, // plain text body
+        });
+    }
+
+    // Reset user's password
+    async resetPassword(dto): Promise<void> {
+        const hashedPassword = await argon2.hash(dto.password);
+
+        const token = await this.prisma.token.findFirst({
+            where: {
+                token: dto.token,
+                type: 'passwordReset',
+                used: false,
+            },
+        });
+
+        const user = await this.prisma.user.update({
+            where: {
+                id: token.userId,
+            },
+            data: {
+                password: hashedPassword,
+            },
+        });
+
+        await this.prisma.token.update({
+            where: {
+                id: token.id,
+            },
+            data: {
+                used: true,
+            }
         });
     }
 }

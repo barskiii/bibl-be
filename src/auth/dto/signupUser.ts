@@ -1,8 +1,8 @@
 import { IsAlpha, IsAlphanumeric, IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from "class-validator";
 
-class SignupUserDto {
+export class SignupUserDto {
     @IsNotEmpty()
-    @IsAlpha()
+    @IsString()
     @MaxLength(30)
     name: string
 

@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Token, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SignupUserDto } from './dto/signupUser';
 import * as argon2 from 'argon2';
@@ -46,22 +46,44 @@ export class AuthService {
 
         // create reusable transporter object using the default SMTP transport
         const transporter = nodemailer.createTransport({
-            host: "smtp.ethereal.email",
-            port: 587,
-            secure: false, // true for 465, false for other ports
+            host: "smtp.mail.yahoo.com",
+            port: 465,
+            secure: true, // true for 465, false for other ports
             auth: {
-            user: this.config.get('EMAIL_USERNAME'), // generated ethereal user
-            pass: this.config.get('EMAIL_PASSWORD'), // generated ethereal password
+                user: this.config.get('EMAIL_USERNAME'), // generated ethereal user
+                pass: this.config.get('EMAIL_PASSWORD'), // generated ethereal password
             },
         });
 
+        console.log(user.email)
         // send mail with defined transport object
         const info = await transporter.sendMail({
-            from: '"Bibl Library 📚" <foo@example.com>', // sender address
+            from: '"Bibl Library 📚" <andrija.joksimovic@yahoo.com>', // sender address
             to: `${user.email}`, // list of receivers
             subject: "Account activation token", // Subject line
             text: `Here's your token: ${token}`, // plain text body
-            html: "<b>Hello world?</b>", // html body
         });
     }
+
+    // Activate user account
+    async activate(token: Token): Promise<void> {
+        const user = await this.prisma.user.update({
+            where: {
+                id: token.userId,
+            },
+            data: {
+                active: true,
+            },
+        });
+
+        await this.prisma.token.update({
+            where: {
+                id: token.id,
+            },
+            data: {
+                used: true,
+            }
+        });
+    }
+
 }

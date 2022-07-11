@@ -5,14 +5,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class UserUniquePipe implements PipeTransform {
     constructor(private prisma: PrismaService) {}
   
-    transform(value: any, metadata: ArgumentMetadata) {
+    async transform(value: any, metadata: ArgumentMetadata) {
         try {
             const { email, username } = value;
-            const uEmail = this.prisma.user.findFirst({ where: { email } });
+            const uEmail = await this.prisma.user.findFirst({ where: { email } });
             if (uEmail) {
                 throw new BadRequestException('Email already exists');
             }
-            const uUsername = this.prisma.user.findFirst({ where: { username } });
+            const uUsername = await this.prisma.user.findFirst({ where: { username } });
             if (uUsername) {
                 throw new BadRequestException('Username already taken');
             }

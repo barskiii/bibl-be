@@ -1,10 +1,12 @@
-import { Body, Controller, Get, ParseFilePipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseFilePipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Token } from '@prisma/client';
 import { diskStorage } from 'multer';
 import { ProfilePicValidationPipe } from 'src/shared/pipes/profilePicture.validator';
 import { diskStorageParams } from 'src/shared/utils/diskStorage';
 import { AuthService } from './auth.service';
 import { SignupUserDto } from './dto/signupUser';
+import { ActivationTokenPipe } from './pipes/userActivationToken.pipe';
 import { UserUniquePipe } from './pipes/userUnique.pipe';
 
 @Controller('/auth')
@@ -23,5 +25,12 @@ export class AuthController {
     await this.authService.sendActivationLink(user);
 
     return {message: 'You have successfully signed up! Check your email for activation link.'};
+  }
+
+  // Note: Activation token pipe retruns token object after validation
+  @Get('activate/:token')
+  async activate(@Param('token', ActivationTokenPipe) token: Token) {
+    const user = await this.authService.activate(token);
+    return {message: 'You have successfully activated your account!'};
   }
 }

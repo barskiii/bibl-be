@@ -16,7 +16,7 @@ export class AuthController {
   @Post('signup')
   @UseInterceptors(FileInterceptor('profilePicture', {storage: diskStorage(diskStorageParams)}))
   async signup(
-    @UploadedFile(new ProfilePicValidationPipe()) profilePicture: Express.Multer.File,
+    @UploadedFile(ProfilePicValidationPipe) profilePicture: Express.Multer.File,
     @Body(UserUniquePipe) dto: SignupUserDto
   ) {
     const user = await this.authService.signup(profilePicture, dto);

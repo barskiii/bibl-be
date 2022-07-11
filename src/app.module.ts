@@ -10,8 +10,9 @@ import { SharedModule } from './shared/shared.module';
       isGlobal: true,
     }),
     PrismaModule,
-    AuthModule,
     SharedModule,
+
+    AuthModule,
   ],
 })
 export class AppModule {}

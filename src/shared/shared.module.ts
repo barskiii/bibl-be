@@ -3,7 +3,6 @@ import { SharedService } from './shared.service';
 import { ProfilePicValidationPipe } from './pipes/profilePicture.validator';
 
 @Module({
-  providers: [SharedService, ProfilePicValidationPipe],
-  exports: [ProfilePicValidationPipe],
+  providers: [SharedService],
 })
 export class SharedModule {}

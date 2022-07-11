@@ -33,4 +33,11 @@ export class AuthController {
     const user = await this.authService.activate(token);
     return {message: 'You have successfully activated your account!'};
   }
+
+  //Request password reset link to user's email
+  @Post('request-password-reset')
+  async requestPasswordReset(@Body('email') email: string) {
+    const user = await this.authService.requestPasswordReset(email);
+    return {message: 'You have successfully requested password reset link! Check your email.'};
+  }
 }

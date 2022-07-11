@@ -55,7 +55,6 @@ export class AuthService {
             },
         });
 
-        console.log(user.email)
         // send mail with defined transport object
         const info = await transporter.sendMail({
             from: '"Bibl Library 📚" <andrija.joksimovic@yahoo.com>', // sender address
@@ -86,4 +85,36 @@ export class AuthService {
         });
     }
 
+    // Request password reset link to user's email
+    async requestPasswordReset(email: string): Promise<void> {
+        const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+        
+        const activationToken = this.prisma.token.create({
+            data: {
+                userId: email,
+                token: token,
+                type: 'passwordReset',
+                expiresAt: moment().add(1, 'M').toDate(),
+            },
+        });
+
+        // create reusable transporter object using the default SMTP transport
+        const transporter = nodemailer.createTransport({
+            host: "smtp.mail.yahoo.com",
+            port: 465,
+            secure: true, // true for 465, false for other ports
+            auth: {
+                user: this.config.get('EMAIL_USERNAME'), // generated ethereal user
+                pass: this.config.get('EMAIL_PASSWORD'), // generated ethereal password
+            },
+        });
+
+        // send mail with defined transport object
+        const info = await transporter.sendMail({
+            from: '"Bibl Library 📚" <andrija.joksimovic@yahoo.com>', // sender address
+            to: `${email}`, // list of receivers
+            subject: "Account activation token", // Subject line
+            text: `Here's your password reset token: ${token}`, // plain text body
+        });
+    }
 }

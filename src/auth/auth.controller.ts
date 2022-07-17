@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseFilePipe, Post, Put, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Token, User } from '@prisma/client';
@@ -54,7 +54,7 @@ export class AuthController {
   }
 
   //Reset user's password
-  @Put('reset-password')
+  @Patch('reset-password')
   async resetPassword(@Body(PasswordResetPipe) dto: ResetPasswordDto) {
     await this.authService.resetPassword(dto);
     return {message: 'You have successfully reseted your password!'};

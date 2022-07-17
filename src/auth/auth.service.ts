@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Token, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SignupUserDto } from './dto/signupUser';
@@ -6,11 +6,13 @@ import * as argon2 from 'argon2';
 import * as nodemailer from 'nodemailer';
 import * as moment from 'moment';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class AuthService {
     constructor(
         private prisma: PrismaService,
         private config: ConfigService,
+        private jwtTokenService: JwtService
     ) {}
 
     //Hash the password with argon2, create user from User model and return user
@@ -147,5 +149,26 @@ export class AuthService {
                 used: true,
             }
         });
+    }
+
+    async validateUserCredentials(username: string, password: string): Promise<User> {
+        const user = await this.prisma.user.findFirst({
+            where: {
+                username: username,
+            },
+        });
+
+        if (user && await argon2.verify(user.password, password)) {
+            return user
+        }
+        throw new BadRequestException('Invalid credentials');
+    }
+
+    async loginWithCredentials(user: any) {
+        const payload = { email: user.email, sub: user.id };
+
+        return {
+            access_token: this.jwtTokenService.sign(payload, {expiresIn: '1h', secret: this.config.get('JWT_SECRET')}),
+        };
     }
 }

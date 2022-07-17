@@ -5,14 +5,23 @@ import { UserUniquePipe } from './pipes/userUnique.pipe';
 import { ActivationTokenPipe } from './pipes/userActivationToken.pipe';
 import { PasswordResetPipe } from './pipes/passwordReset.pipe';
 import { PasswordResetRequestPipe } from './pipes/passwordResetRequest.pipe';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './strategy/jwt.strategy';
 
 @Module({
+  imports: [
+    PassportModule,
+    JwtModule.register({})
+  ],
   controllers: [AuthController],
   providers: [
     AuthService, 
     UserUniquePipe, 
     ActivationTokenPipe, 
     PasswordResetRequestPipe, 
-    PasswordResetPipe]
+    PasswordResetPipe,
+    JwtStrategy
+  ],
 })
 export class AuthModule {}

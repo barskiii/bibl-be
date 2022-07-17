@@ -1,10 +1,12 @@
-import { Body, Controller, Get, Param, ParseFilePipe, Post, Put, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseFilePipe, Post, Put, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Token, User } from '@prisma/client';
 import { diskStorage } from 'multer';
 import { ProfilePicValidationPipe } from 'src/shared/pipes/profilePicture.validator';
 import { diskStorageParams } from 'src/shared/utils/diskStorage';
 import { AuthService } from './auth.service';
+import { LoginDto } from './dto/loginUser';
 import { ResetPasswordDto } from './dto/resetPassword';
 import { SignupUserDto } from './dto/signupUser';
 import { PasswordResetPipe } from './pipes/passwordReset.pipe';
@@ -13,7 +15,7 @@ import { PasswordTokenCheckPipe } from './pipes/passwordTokenCheck.pipe';
 import { ActivationTokenPipe } from './pipes/userActivationToken.pipe';
 import { UserUniquePipe } from './pipes/userUnique.pipe';
 
-@Controller('/auth')
+@Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,  
@@ -56,5 +58,20 @@ export class AuthController {
   async resetPassword(@Body(PasswordResetPipe) dto: ResetPasswordDto) {
     await this.authService.resetPassword(dto);
     return {message: 'You have successfully reseted your password!'};
+  }
+
+  // @UseGuards(AuthGuard('local'))
+  @Post('login')
+  async login(@Body() dto: LoginDto) {
+    const user = await this.authService.validateUserCredentials(dto.username, dto.password);
+    console.log(user)
+    return this.authService.loginWithCredentials(user);
+  }
+
+  // Auth test route
+  @UseGuards(AuthGuard('jwt'))
+  @Get('me')
+  async me(@Request() req) {
+    return req.user;
   }
 }

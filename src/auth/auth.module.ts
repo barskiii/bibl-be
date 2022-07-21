@@ -8,6 +8,8 @@ import { PasswordResetRequestPipe } from './pipes/passwordResetRequest.pipe';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategy/jwt.strategy';
+import { JwtAuthGuard } from 'src/guards/jwtAuth.guard';
+import { JwtRefreshStrategy } from './strategy/jwt-refresh.strategy';
 
 @Module({
   imports: [
@@ -21,7 +23,9 @@ import { JwtStrategy } from './strategy/jwt.strategy';
     ActivationTokenPipe, 
     PasswordResetRequestPipe, 
     PasswordResetPipe,
-    JwtStrategy
+    JwtStrategy,
+    JwtRefreshStrategy,
+    JwtAuthGuard,
   ],
 })
 export class AuthModule {}

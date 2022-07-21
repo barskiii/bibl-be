@@ -1,12 +1,15 @@
-import { Body, Controller, Get, Param, Patch, Post, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Patch, Post, Request, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Token, User } from '@prisma/client';
 import { diskStorage } from 'multer';
-import { ProfilePicValidationPipe } from 'src/shared/pipes/profilePicture.validator';
+import { RolesGuard } from 'src/guards/role.guard';
+import { ProfilePicValidationPipe } from 'src/shared/pipes/profilePictureValidator.pipe';
 import { diskStorageParams } from 'src/shared/utils/diskStorage';
 import { AuthService } from './auth.service';
+import { Roles } from './decorators/role.decorator';
 import { LoginDto } from './dto/loginUser';
+import { RefreshTokenDto } from './dto/refreshToken';
 import { ResetPasswordDto } from './dto/resetPassword';
 import { SignupUserDto } from './dto/signupUser';
 import { PasswordResetPipe } from './pipes/passwordReset.pipe';
@@ -14,6 +17,7 @@ import { PasswordResetRequestPipe, } from './pipes/passwordResetRequest.pipe';
 import { PasswordTokenCheckPipe } from './pipes/passwordTokenCheck.pipe';
 import { ActivationTokenPipe } from './pipes/userActivationToken.pipe';
 import { UserUniquePipe } from './pipes/userUnique.pipe';
+import { Role } from './types/roles.enum';
 
 @Controller('auth')
 export class AuthController {
@@ -64,12 +68,18 @@ export class AuthController {
   @Post('login')
   async login(@Body() dto: LoginDto) {
     const user = await this.authService.validateUserCredentials(dto.username, dto.password);
-    console.log(user)
     return this.authService.loginWithCredentials(user);
   }
 
+  @UseGuards(AuthGuard('jwt-refresh'))
+  @Post('refresh-token')
+  async refreshToken(@Headers() headers, @Body() dto: RefreshTokenDto) {
+    return this.authService.refreshToken(headers.authorization, dto.id);
+  }
+
   // Auth test route
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles([Role.User, Role.Admin])
   @Get('me')
   async me(@Request() req) {
     return req.user;
